@@ -7,8 +7,6 @@ import re
 from time import sleep
 import logging
 
-#url = 'https://docs.google.com/forms/d/e/1FAIpQLSfo73u2pHJFxJpV8Ow8_4y8VyPztHgikw3RJKmUgFmrZ3GqQQ/viewform'
-url = 'https://docs.google.com/forms/d/e/1FAIpQLSe2woUfImI-hNjkKThUD14Z0O6fQwKvqanYDWLnIFgxzJM4og/viewform?usp=sf_link'
 Name = 'علی زرین کلاه'
 Number = 'موقت'
 ID = '2283290211'
@@ -107,39 +105,48 @@ def FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate): #Change the param
             #If both POST method and URL Recosntruction fails, it returns an error message
             return '[!] Attendance not sent !'
 
+def Start():
+    logging.basicConfig(filename=file,
+                        format='%(asctime)s %(message)s',
+                        filemode='a',
+                        level=logging.INFO)
+    logger = logging.getLogger()
+    global total_time, wait_time, sleep_time
 
-file = r"formfiller.log"
-logging.basicConfig(filename=file,
-                    format='%(asctime)s %(message)s',
-                    filemode='a',
-                    level=logging.INFO)
-logger = logging.getLogger()
-
-wait_time = 5    #chan saniye ye bar refresh kne
-sleep_time = 70       #chan saniye sleep bere
+    wait_time = 5    #chan saniye ye bar refresh kne
+    sleep_time = 5       #chan saniye sleep bere
 
 
-total_time = 0
-if HolidayCheck():
-    if CheckDay():
-        def DoAll():
-            global total_time, wait_time, sleep_time
-            if AvailabeForm():
-                sleep(sleep_time)
-                a = FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate)
-                print (a)
-                log = f"=={Today}==> ({total_time}/{wait_time}= {int(total_time/wait_time)} NA) --{sleep_time}S >> {a}"
-                logger.info(log)
+    total_time = 0
+    if HolidayCheck():
+        if CheckDay():
+            def DoAll():
+                global total_time, wait_time, sleep_time
+                if AvailabeForm():
+                    sleep(sleep_time)
+                    a = FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate)
+                    print (a)
+                    log = f"=={Today}==> ({total_time}/{wait_time}= {int(total_time/wait_time)} NA) --{sleep_time}S >> {a}"
+                    logger.info(log)
 
-            else:
-                print('form baz nashode')
-                total_time += wait_time
+                else:
+                    print('form baz nashode')
+                    total_time += wait_time
 
-                Timer(wait_time, DoAll).start()
-        DoAll()
+                    Timer(wait_time, DoAll).start()
+            DoAll()
+        else:
+            print ('roz haye jome V 2shanbe hast')
+            logger.info(f"=={Today}==> emruz {Today} hast")
     else:
-        print ('roz haye jome V 2shanbe hast')
-        logger.info(f"=={Today}==> emruz {Today} hast")
+        print('ruz tatil hast emruz')
+        logger.info(f"=={Today}==> ruze tatil hast")
+
+
+if __name__ == "__main__":
+    file = r"test.log"
+    url = 'https://docs.google.com/forms/d/e/1FAIpQLSe2woUfImI-hNjkKThUD14Z0O6fQwKvqanYDWLnIFgxzJM4og/viewform?usp=sf_link'
+    Start()
 else:
-    print('ruz tatil hast emruz')
-    logger.info(f"=={Today}==> ruze tatil hast")
+    file = r"/home/ubuntu/logff.log"
+    url = 'https://docs.google.com/forms/d/e/1FAIpQLSfo73u2pHJFxJpV8Ow8_4y8VyPztHgikw3RJKmUgFmrZ3GqQQ/viewform'
