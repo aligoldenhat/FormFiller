@@ -114,7 +114,7 @@ def Start():
     global total_time, wait_time, sleep_time
 
     wait_time = 5    #chan saniye ye bar refresh kne
-    sleep_time = 5       #chan saniye sleep bere
+    sleep_time = 70       #chan saniye sleep bere
 
 
     total_time = 0
