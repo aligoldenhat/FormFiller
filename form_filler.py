@@ -1,23 +1,29 @@
 import urllib
 import requests
 from bs4 import BeautifulSoup
-import datetime, calendar, os
+import datetime, calendar, os, calendar
 from threading import Timer
 import re
 from time import sleep
+import logging
 
-#url = 'https://docs.google.com/forms/yourform'
-url = ''
-Name = 'your name'
-Number = ''
-ID = ''
-PhoneNumber = ''
-Vaccinate = ''
+#url = 'https://docs.google.com/forms/d/e/1FAIpQLSfo73u2pHJFxJpV8Ow8_4y8VyPztHgikw3RJKmUgFmrZ3GqQQ/viewform'
+url = 'https://docs.google.com/forms/d/e/1FAIpQLSe2woUfImI-hNjkKThUD14Z0O6fQwKvqanYDWLnIFgxzJM4og/viewform?usp=sf_link'
+Name = 'علی زرین کلاه'
+Number = 'موقت'
+ID = '2283290211'
+PhoneNumber = '09178331380'
+Vaccinate = 'دو نوبت'
 
-#Update holiday every month
+#update holiday every month
 Holidays = [23, 2, 3]
 
-#Do not book on some days
+#emruz chan shanbe asst
+curr_date = datetime.date.today()
+weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'i]
+Today = weekdays[curr_date]
+
+#aya mishe emruz reseve kard
 def CheckDay():
     curr_day = calendar.day_name[datetime.date.today().weekday()]
     reserve_day = ['Saturday', 'Sunday', 'Tuesday', 'Wednesday', 'Thursday']
@@ -25,7 +31,7 @@ def CheckDay():
     for check_day in reserve_day:
         if curr_day == check_day:
             return True
-    
+
     return False
 
 def HolidayCheck():
@@ -34,7 +40,7 @@ def HolidayCheck():
             return False
     return True
 
-#Is Google Form Open?
+#aya google form answar accept mikne
 def AvailabeForm():
     try:
         res = urllib.request.urlopen(url)
@@ -43,35 +49,35 @@ def AvailabeForm():
         return True
     except AttributeError:
         return False
-    
+
 def get_questions(url):
-    
+
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    
+
     content = soup.body.find_all(text = re.compile('var FB'))
-    
+
     match = re.findall('[,]["][\w\s]+["][,]', str(content))
     question_strings = [x.strip('"') for x in match]
-    
+
     match_ids = re.findall('(?<=\[\[)(\d+)', str(content))
     question_ids = ['entry.' + x for x in match_ids[1:]]
-    
+
     return question_ids
 
 def FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate): #Change the parameters other than url as per your needs
-    
+
     '''Sends the answers for a Google Form'''
-    
+
     ids = get_questions(url)
-    
+
     answers = [Name, Number, ID, PhoneNumber, Vaccinate]
     response = dict(zip(ids, answers))
-    
+
     if 'viewform' in url:
-        s = url.index('viewform') 
+        s = url.index('viewform')
         response_url = url.replace(url[s::], 'formResponse?')
-        
+
     try:
         #This tries to send the data (answers) using POST method.
         r = requests.post(response_url, response)
@@ -84,15 +90,15 @@ def FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate): #Change the param
         try:
             #This tries to send the data (answers) using URL Reconstruction if the POST method fails.
             ans_list = [x + '=' + y for x, y in zip(ids, answers)]
-            
+
             for i in range(0, len(ans_list)):
                 response_url += ans_list[i]
                 response_url += '&'
-                
-            response_url.strip("&")    
+
+            response_url.strip("&")
             r = requests.get(response_url)
             status = r.status_code
-            
+
             if status == 200:
                 return '[!] Attendance sent !'
             else:
@@ -102,32 +108,35 @@ def FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate): #Change the param
             return '[!] Attendance not sent !'
 
 
-#file = os.path.join(os.path.dirname(__file__), './log.txt')
-#Create a log.txt and ...
-file = r'C:\Users\Digi Max\Desktop\log.txt'
-log_txt = open(file, 'a')
-log_txt.write('\n')
-log_txt.write(str(datetime.datetime.now()))
-log_txt.write(' =====> ')
+file = r"formfiller.log"
+logging.basicConfig(filename=file,
+                    format='%(asctime)s %(message)s',
+                    filemode='a',
+                    level=logging.INFO)
+logger = logging.getLogger()
+wait_time = 5    #chan saniye ye bar refresh kne
 
 
+total_time = 0
 if HolidayCheck():
     if CheckDay():
         def DoAll():
+            global total_time, wait_time
             if AvailabeForm():
                 a = FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate)
                 print (a)
-                log_txt.write(a)
+                log = f"=={Today}==> ({total_time}/{wait_time}= {int(total_time/wait_time)} NA) -- {a}"
+                logger.info(log)
+
             else:
                 print('form baz nashode')
-                log_txt.write('NA  - ')
-                Timer(5, DoAll).start() 
+                total_time += wait_time
+
+                Timer(wait_time, DoAll).start()
         DoAll()
     else:
         print ('roz haye jome V 2shanbe hast')
-        log_txt.write('roz haye jome V 2shanbe hast')
+        logger.info(f"=={Today}==> emruz {Today} hast")
 else:
     print('ruz tatil hast emruz')
-    log_txt.write('ruz tatil hast emruz')
-
-
+    logger.info(f"=={Today}==> ruze tatil hast")
