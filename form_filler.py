@@ -19,8 +19,8 @@ Vaccinate = 'دو نوبت'
 Holidays = [23, 2, 3]
 
 #emruz chan shanbe asst
-curr_date = datetime.date.today()
-weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'i]
+curr_date = datetime.datetime.today().weekday()
+weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 Today = weekdays[curr_date]
 
 #aya mishe emruz reseve kard
@@ -82,7 +82,7 @@ def FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate): #Change the param
         #This tries to send the data (answers) using POST method.
         r = requests.post(response_url, response)
         if r.status_code == 200:
-            return '[!] Attendence posted !'
+            return '[!]'
         else:
             raise Exception
 
@@ -100,7 +100,7 @@ def FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate): #Change the param
             status = r.status_code
 
             if status == 200:
-                return '[!] Attendance sent !'
+                return '[!]'
             else:
                 raise Exception
         except:
@@ -114,18 +114,21 @@ logging.basicConfig(filename=file,
                     filemode='a',
                     level=logging.INFO)
 logger = logging.getLogger()
+
 wait_time = 5    #chan saniye ye bar refresh kne
+sleep_time = 70       #chan saniye sleep bere
 
 
 total_time = 0
 if HolidayCheck():
     if CheckDay():
         def DoAll():
-            global total_time, wait_time
+            global total_time, wait_time, sleep_time
             if AvailabeForm():
+                sleep(sleep_time)
                 a = FormFiller(url, Name, Number, ID, PhoneNumber, Vaccinate)
                 print (a)
-                log = f"=={Today}==> ({total_time}/{wait_time}= {int(total_time/wait_time)} NA) -- {a}"
+                log = f"=={Today}==> ({total_time}/{wait_time}= {int(total_time/wait_time)} NA) --{sleep_time}S >> {a}"
                 logger.info(log)
 
             else:
